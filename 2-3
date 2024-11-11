@@ -1,0 +1,98 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <stdbool.h>
+#include <locale.h>
+
+#define MAX_VERTICES 100
+
+void generate_adjacency_matrix(int n, int matrix[MAX_VERTICES][MAX_VERTICES]) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            matrix[i][j] = 0;
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            int edge = rand() % 2;
+            matrix[i][j] = edge;
+            matrix[j][i] = edge;
+        }
+    }
+}
+void DFSD_iterative(int start_vertex, int n, int matrix[MAX_VERTICES][MAX_VERTICES], int DIST[MAX_VERTICES]) {
+    int stack[MAX_VERTICES];
+    int top = -1;
+
+    stack[++top] = start_vertex;
+    DIST[start_vertex] = 0;
+
+    while (top != -1) {
+        int v = stack[top--];
+
+        for (int i = 0; i < n; i++) {
+            if (matrix[v][i] == 1 && DIST[i] == -1) {
+                stack[++top] = i;
+                DIST[i] = DIST[v] + 1;
+            }
+        }
+    }
+}
+
+void BFSD(int v, int n, int matrix[MAX_VERTICES][MAX_VERTICES], int DIST[MAX_VERTICES]) {
+    int queue[MAX_VERTICES];
+    int head = 0, tail = 0;
+
+    queue[tail++] = v;
+    DIST[v] = 0;
+
+    while (head < tail) {
+        v = queue[head++];
+
+        for (int i = 0; i < n; i++) {
+            if (matrix[v][i] == 1 && DIST[i] == -1) {
+                queue[tail++] = i;
+                DIST[i] = DIST[v] + 1;
+            }
+        }
+    }
+}
+
+
+void measure_time(int n) {
+    setlocale(LC_ALL, "Rus");
+    int matrix[MAX_VERTICES][MAX_VERTICES];
+    int DIST[MAX_VERTICES];
+    generate_adjacency_matrix(n, matrix);
+
+    int start_vertex = 0; // начальный узел
+
+    // Время для обхода основанного на обходе в ширину
+    for (int i = 0; i < n; i++) {
+        DIST[i] = -1;
+    }
+    clock_t start = clock();
+    BFSD(0, n, matrix, DIST);
+    clock_t end = clock();
+    long double time_taken_bfsd = ((long double)(end - start)) / CLOCKS_PER_SEC;
+
+    // Время для обхода основанного на обходе в глубину
+    for (int i = 0; i < n; i++) {
+        DIST[i] = -1;
+    }
+    start = clock();
+    DFSD_iterative(0, n, matrix, DIST);
+    end = clock();
+    long double time_taken_dfsd = ((long double)(end - start)) / CLOCKS_PER_SEC;
+
+    printf("Размер графа: %d, Время BFSD: %lf, Время DFSD: %lf\n", n, time_taken_bfsd, time_taken_dfsd);
+}
+
+int main() {
+    srand(time(NULL));
+    for (int n = 10; n <= 100; n += 10) {
+        measure_time(n);
+    }
+    return 0;
+}
