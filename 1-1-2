@@ -1,10 +1,9 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <queue>
 
-#define MAX_VERTICES 100
-
-void generate_adjacency_matrix(int n, int matrix[MAX_VERTICES][MAX_VERTICES]) {
+void generate_adjacency_matrix(int n, int** matrix) {
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             matrix[i][j] = 0;
@@ -20,12 +19,20 @@ void generate_adjacency_matrix(int n, int matrix[MAX_VERTICES][MAX_VERTICES]) {
     }
 }
 
-void DFSD(int v, int n, int matrix[MAX_VERTICES][MAX_VERTICES], int DIST[MAX_VERTICES], int depth) {
-    DIST[v] = depth; // depth = расстояние
+void BFSD(int start, int n, int** matrix, int* DIST) {
+    std::queue<int> q;
+    q.push(start);
+    DIST[start] = 0;
 
-    for (int i = 0; i < n; i++) {
-        if (matrix[v][i] == 1 && DIST[i] == -1) {
-            DFSD(i, n, matrix, DIST, depth + 1);
+    while (!q.empty()) {
+        int v = q.front();
+        q.pop();
+
+        for (int i = 0; i < n; i++) {
+            if (matrix[v][i] == 1 && DIST[i] == -1) {
+                DIST[i] = DIST[v] + 1;
+                q.push(i);
+            }
         }
     }
 }
@@ -42,10 +49,14 @@ int main() {
             break;
         }
 
-        int matrix[MAX_VERTICES][MAX_VERTICES];
-        int DIST[MAX_VERTICES];
+        // Динамическое выделение памяти для матрицы смежности и массива DIST
+        int** matrix = new int* [n];
+        for (int i = 0; i < n; i++) {
+            matrix[i] = new int[n];
+        }
+        int* DIST = new int[n];
 
-        srand((unsigned)time(NULL));
+        srand(time(NULL));
 
         generate_adjacency_matrix(n, matrix);
 
@@ -58,12 +69,16 @@ int main() {
         }
 
         for (int i = 0; i < n; i++) {
-            DIST[i] = -1; 
+            DIST[i] = -1;
         }
 
-        DFSD(0, n, matrix, DIST, 0); 
+        int start;
+        std::cout << "Введите вершину, с которой начнется обход: ";
+        std::cin >> start;
 
-        std::cout << "Расстояния от вершины 0:\n";
+        BFSD(start, n, matrix, DIST);
+
+        std::cout << "Расстояния от вершины " << start << ": \n";
         for (int i = 0; i < n; i++) {
             if (DIST[i] == -1) {
                 std::cout << "Вершина " << i << ": недоступна\n";
@@ -72,6 +87,13 @@ int main() {
                 std::cout << "Вершина " << i << ": " << DIST[i] << "\n";
             }
         }
+
+        // Освобождение выделенной памяти
+        for (int i = 0; i < n; i++) {
+            delete[] matrix[i];
+        }
+        delete[] matrix;
+        delete[] DIST;
     }
     return 0;
 }
