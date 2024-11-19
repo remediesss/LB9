@@ -21,14 +21,27 @@ void generate_adjacency_matrix(int n, int matrix[MAX_VERTICES][MAX_VERTICES]) {
 }
 
 void DFSD(int v, int n, int matrix[MAX_VERTICES][MAX_VERTICES], int DIST[MAX_VERTICES], int depth) {
-    DIST[v] = depth; // depth = расстояние
+    if (DIST[v] != -1 && DIST[v] <= depth) { 
+        return;
+    }
+
+    DIST[v] = depth;
 
     for (int i = 0; i < n; i++) {
-        if (matrix[v][i] == 1 && DIST[i] == -1) {
+        if (matrix[v][i] == 1) { 
             DFSD(i, n, matrix, DIST, depth + 1);
         }
     }
 }
+
+void findShortestPaths(int start, int n, int matrix[MAX_VERTICES][MAX_VERTICES], int DIST[MAX_VERTICES]) {
+    for (int i = 0; i < n; i++) {
+        DIST[i] = -1;
+    }
+
+    DFSD(start, n, matrix, DIST, 0);
+}
+
 
 int main() {
     setlocale(LC_ALL, "Russian");
@@ -61,7 +74,7 @@ int main() {
             DIST[i] = -1;
         }
 
-        DFSD(0, n, matrix, DIST, 0);
+        findShortestPaths(0, n, matrix, DIST);
 
         std::cout << "Расстояния от вершины 0:\n";
         for (int i = 0; i < n; i++) {
@@ -72,6 +85,7 @@ int main() {
                 std::cout << "Вершина " << i << " на расстоянии " << DIST[i] << "\n";
             }
         }
+        std::cout << "\n";
     }
     return 0;
 }
